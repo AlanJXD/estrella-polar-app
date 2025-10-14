@@ -1,36 +1,126 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Estrella Polar Estudio - Frontend
 
-## Getting Started
+PWA para gestión de sesiones fotográficas del estudio "Estrella Polar".
 
-First, run the development server:
+## Tecnologías
+
+- **Next.js 15** - Framework React con App Router
+- **TypeScript** - Tipado estático
+- **Tailwind CSS** - Estilos utility-first con tema dark personalizado
+- **PWA** - Optimizado para iOS con liquid glass UI
+- **Framer Motion** - Animaciones modernas y fluidas
+- **Calendario personalizado** - Componente custom con date-fns
+- **Zustand** - Estado global minimalista
+- **Axios** - Cliente HTTP para API REST
+- **date-fns** - Manipulación de fechas
+
+## Características
+
+- ✅ Login con liquid glass design
+- ✅ Agenda con calendario visual
+- ✅ Autenticación JWT persistente
+- ✅ PWA optimizado para iOS
+- ✅ Tema dark con azul primario
+- ✅ Animaciones suaves con Framer Motion
+- ✅ Diseño responsive y mobile-first
+
+## Instalación
 
 ```bash
+# Instalar dependencias
+npm install
+
+# Iniciar servidor de desarrollo
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# Build para producción
+npm run build
+
+# Iniciar servidor de producción
+npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Variables de Entorno
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Crea un archivo `.env.local`:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3000/api
+```
 
-## Learn More
+## Servidor de Desarrollo
 
-To learn more about Next.js, take a look at the following resources:
+El servidor inicia en `http://localhost:3001` (puerto 3000 ocupado por API)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Estructura del Proyecto
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+estrella-polar-app/
+├── app/
+│   ├── login/
+│   │   └── page.tsx          # Vista de login con liquid glass
+│   ├── agenda/
+│   │   └── page.tsx          # Vista de agenda con calendario
+│   ├── layout.tsx            # Layout principal con metadata PWA
+│   ├── page.tsx              # Redirección a login/agenda
+│   └── globals.css           # Estilos globales Tailwind
+├── lib/
+│   ├── api/
+│   │   ├── client.ts         # Cliente axios configurado
+│   │   ├── auth.ts           # Endpoints de autenticación
+│   │   └── sesiones.ts       # Endpoints de sesiones
+│   └── store/
+│       └── authStore.ts      # Store de autenticación con Zustand
+├── public/
+│   └── manifest.json         # Manifest PWA para iOS
+├── tailwind.config.js        # Configuración Tailwind con tema dark
+└── next.config.ts            # Configuración Next.js con PWA
+```
 
-## Deploy on Vercel
+## Rutas
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `/` - Redirección automática según estado de autenticación
+- `/login` - Página de inicio de sesión
+- `/agenda` - Calendario de sesiones (requiere auth)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Tema de Colores
+
+```javascript
+primary: {
+  50: '#eff6ff',   // Azul muy claro
+  500: '#3b82f6',  // Azul principal
+  600: '#2563eb',  // Azul oscuro
+  900: '#1e3a8a',  // Azul muy oscuro
+}
+```
+
+## Componentes Personalizados
+
+### Clases CSS Utility
+
+- `.glass` - Efecto liquid glass sutil
+- `.glass-strong` - Efecto liquid glass intenso
+- `.ios-blur` - Blur estilo iOS con gradiente
+
+## Próximas Funcionalidades
+
+- [ ] Vista de detalle de sesión
+- [ ] Formulario para crear nueva sesión
+- [ ] Vista de finanzas con gráficas
+- [ ] Vista de cajas con saldos
+- [ ] Vista de paquetes (CRUD)
+- [ ] Vista de reportes
+- [ ] Notificaciones push
+- [ ] Modo offline
+
+## Notas de Desarrollo
+
+- El backend API debe estar corriendo en `http://localhost:3000`
+- Usuario de prueba: `alan` / `admin`
+- La autenticación se persiste en localStorage
+- PWA instalable desde Safari en iOS
+
+## Licencia
+
+MIT
+"# estrella-polar-app" 
