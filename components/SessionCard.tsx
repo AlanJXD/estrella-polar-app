@@ -69,20 +69,20 @@ export default function SessionCard({ sesion, onClick }: SessionCardProps) {
           <div>
             <p className="text-xs text-slate-400">Anticipo</p>
             <p className="text-sm font-bold text-green-400">
-              ${sesion.anticipo.toFixed(2)}
+              ${Number(sesion.anticipo).toFixed(2)}
             </p>
           </div>
           <div>
             <p className="text-xs text-slate-400">Restante</p>
             <p className="text-sm font-bold text-yellow-400">
-              ${sesion.restante.toFixed(2)}
+              ${Number(sesion.restante).toFixed(2)}
             </p>
           </div>
         </div>
         <div>
           <p className="text-xs text-slate-400">Total</p>
           <p className="text-sm font-bold text-white">
-            ${sesion.paquete.precio.toFixed(2)}
+            ${Number(sesion.paquete.precio).toFixed(2)}
           </p>
         </div>
       </div>

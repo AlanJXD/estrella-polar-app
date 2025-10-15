@@ -32,14 +32,22 @@ export default function AgendaPage() {
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedSesion, setSelectedSesion] = useState<Sesion | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // Esperar a que el store se hidrate
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   useEffect(() => {
+    if (!isHydrated) return;
+
     if (!isAuthenticated) {
       router.push('/login');
       return;
     }
     cargarSesiones();
-  }, [isAuthenticated, router]);
+  }, [isHydrated, isAuthenticated, router]);
 
   const cargarSesiones = async () => {
     try {
@@ -80,7 +88,7 @@ export default function AgendaPage() {
     router.push('/login');
   };
 
-  if (loading) {
+  if (!isHydrated || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="glass-strong rounded-2xl p-8">
@@ -88,6 +96,10 @@ export default function AgendaPage() {
         </div>
       </div>
     );
+  }
+
+  if (!isAuthenticated) {
+    return null;
   }
 
   return (
@@ -242,7 +254,7 @@ export default function AgendaPage() {
                   <p className="text-sm text-slate-400">Paquete</p>
                   <p className="font-semibold">{selectedSesion.paquete.nombre}</p>
                   <p className="text-sm text-primary-400 font-medium">
-                    ${selectedSesion.paquete.precio.toFixed(2)}
+                    ${Number(selectedSesion.paquete.precio).toFixed(2)}
                   </p>
                 </div>
 
@@ -260,13 +272,13 @@ export default function AgendaPage() {
                   <div>
                     <p className="text-sm text-slate-400">Anticipo</p>
                     <p className="font-bold text-lg text-green-400">
-                      ${selectedSesion.anticipo.toFixed(2)}
+                      ${Number(selectedSesion.anticipo).toFixed(2)}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm text-slate-400">Restante</p>
                     <p className="font-bold text-lg text-yellow-400">
-                      ${selectedSesion.restante.toFixed(2)}
+                      ${Number(selectedSesion.restante).toFixed(2)}
                     </p>
                   </div>
                 </div>

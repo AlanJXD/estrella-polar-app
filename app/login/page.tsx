@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '@/lib/store/authStore';
@@ -8,11 +8,35 @@ import { authApi } from '@/lib/api/auth';
 
 export default function LoginPage() {
   const router = useRouter();
-  const setAuth = useAuthStore((state) => state.setAuth);
+  const { setAuth, isAuthenticated } = useAuthStore();
   const [usuario, setUsuario] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // Esperar a que el store se hidrate desde localStorage
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
+  // Redirigir si ya está autenticado
+  useEffect(() => {
+    if (isHydrated && isAuthenticated) {
+      router.push('/agenda');
+    }
+  }, [isHydrated, isAuthenticated, router]);
+
+  // No mostrar el formulario si ya está autenticado
+  if (!isHydrated || isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="glass-strong rounded-2xl p-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
+        </div>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

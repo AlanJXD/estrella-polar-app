@@ -34,3 +34,7 @@
   backdrop-filter: blur(48px);
   background-image: linear-gradient(to bottom right, rgb(255 255 255 / 0.3), rgb(255 255 255 / 0.1));
 }
+
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
