@@ -1,138 +1,296 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { sesionesApi } from '@/lib/api/sesiones';
+import { Calendar, DollarSign, Users, Wallet } from 'lucide-react';
+
+interface DistribucionData {
+  fechaInicio: string;
+  fechaFin: string;
+  totalIngresos: number;
+  totalGastos: number;
+  totalNeto: number;
+  totalAnticipos: number;
+  totalLiquidaciones: number;
+  totalCajas: number;
+  distribucion: {
+    itzel: number;
+    cristian: number;
+    cesar: number;
+  };
+  sesiones?: any[];
+}
 
 export default function ReportesPage() {
+  const [cargando, setCargando] = useState(false);
+  const [reporte, setReporte] = useState<DistribucionData | null>(null);
+  const [fechaInicio, setFechaInicio] = useState('');
+  const [fechaFin, setFechaFin] = useState('');
 
-  const reportTypes = [
-    {
-      name: 'Sesiones por Periodo',
-      description: 'Reporte de sesiones realizadas en un rango de fechas',
-      icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-      ),
-      color: 'primary',
-    },
-    {
-      name: 'Ingresos y Egresos',
-      description: 'Análisis financiero detallado del periodo',
-      icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
-      color: 'green',
-    },
-    {
-      name: 'Distribución de Ganancias',
-      description: 'Reporte de distribución entre socios',
-      icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
-        </svg>
-      ),
-      color: 'purple',
-    },
-    {
-      name: 'Movimientos de Caja',
-      description: 'Historial completo de movimientos por caja',
-      icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-        </svg>
-      ),
-      color: 'blue',
-    },
-    {
-      name: 'Clientes Frecuentes',
-      description: 'Listado de clientes y frecuencia de sesiones',
-      icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-        </svg>
-      ),
-      color: 'yellow',
-    },
-    {
-      name: 'Paquetes Más Vendidos',
-      description: 'Análisis de popularidad de paquetes',
-      icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
-      ),
-      color: 'pink',
-    },
-  ];
+  const obtenerMesActual = () => {
+    const hoy = new Date();
+    const primerDia = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+    const ultimoDia = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
 
-  const colorClasses = {
-    primary: 'bg-primary-500/20 text-primary-400',
-    green: 'bg-green-500/20 text-green-400',
-    purple: 'bg-purple-500/20 text-purple-400',
-    blue: 'bg-blue-500/20 text-blue-400',
-    yellow: 'bg-yellow-500/20 text-yellow-400',
-    pink: 'bg-pink-500/20 text-pink-400',
+    const inicio = primerDia.toISOString().split('T')[0];
+    const fin = ultimoDia.toISOString().split('T')[0];
+
+    setFechaInicio(inicio);
+    setFechaFin(fin);
+
+    return { inicio, fin };
+  };
+
+  const cargarReporte = async (inicio?: string, fin?: string) => {
+    setCargando(true);
+    try {
+      const response = await sesionesApi.reporteDistribucion({
+        fechaInicio: inicio || fechaInicio,
+        fechaFin: fin || fechaFin,
+      });
+
+      if (response.success) {
+        setReporte(response.data);
+      }
+    } catch (error) {
+      console.error('Error al cargar reporte:', error);
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  const handleMesActual = () => {
+    const { inicio, fin } = obtenerMesActual();
+    cargarReporte(inicio, fin);
+  };
+
+  const handleBuscar = () => {
+    if (fechaInicio && fechaFin) {
+      cargarReporte();
+    }
+  };
+
+  useEffect(() => {
+    handleMesActual();
+  }, []);
+
+  const formatearMoneda = (valor: string | number | undefined | null) => {
+    if (valor === undefined || valor === null || valor === '') return '$0.00';
+    const numero = typeof valor === 'string' ? parseFloat(valor) : valor;
+    if (isNaN(numero)) return '$0.00';
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN',
+    }).format(numero);
+  };
+
+  const formatearFecha = (fecha: string | undefined | null) => {
+    if (!fecha) return 'Sin fecha';
+    try {
+      const date = new Date(fecha + 'T00:00:00');
+      if (isNaN(date.getTime())) return 'Fecha inválida';
+      return date.toLocaleDateString('es-MX', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    } catch (error) {
+      return 'Fecha inválida';
+    }
   };
 
   return (
-    <div className="min-h-screen p-4 md:p-6 lg:p-8">
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="glass-strong rounded-2xl p-6 mb-6 shadow-xl"
-      >
-        <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">
-          Reportes
-        </h1>
-        <p className="text-slate-300 text-sm">
-          Análisis y reportes del estudio
-        </p>
-      </motion.div>
+    <div className="min-h-screen pb-24 px-4 pt-8">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <h1 className="text-3xl font-bold text-white mb-2">Reportes</h1>
+          <p className="text-white/60">Corte mensual y distribución de ingresos</p>
+        </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {reportTypes.map((report, index) => (
-          <motion.div
-            key={report.name}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            whileHover={{ scale: 1.02 }}
-            className="glass-strong rounded-2xl p-6 shadow-xl cursor-pointer hover:bg-white/5 transition-all"
-          >
-            <div className={`p-3 ${colorClasses[report.color as keyof typeof colorClasses]} rounded-xl w-fit mb-4`}>
-              {report.icon}
+        {/* Selector de fechas */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="glass rounded-2xl p-6 mb-6"
+        >
+          <div className="flex items-center gap-2 mb-4">
+            <Calendar className="w-5 h-5 text-primary-400" />
+            <h2 className="text-lg font-semibold text-white">Seleccionar período</h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block text-sm text-white/60 mb-2">Fecha inicio</label>
+              <input
+                type="date"
+                value={fechaInicio}
+                onChange={(e) => setFechaInicio(e.target.value)}
+                className="w-full px-4 py-3 rounded-lg glass border border-white/20 bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+              />
             </div>
+            <div>
+              <label className="block text-sm text-white/60 mb-2">Fecha fin</label>
+              <input
+                type="date"
+                value={fechaFin}
+                onChange={(e) => setFechaFin(e.target.value)}
+                className="w-full px-4 py-3 rounded-lg glass border border-white/20 bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+              />
+            </div>
+          </div>
 
-            <h3 className="text-lg font-bold text-white mb-2">{report.name}</h3>
-            <p className="text-sm text-slate-400 mb-4">{report.description}</p>
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={handleMesActual}
+              className="flex-1 min-w-[160px] py-3 px-4 bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-white rounded-lg font-medium transition-all"
+            >
+              Mes actual
+            </button>
+            <button
+              onClick={handleBuscar}
+              disabled={!fechaInicio || !fechaFin}
+              className="flex-1 min-w-[160px] py-3 px-4 bg-white/10 hover:bg-white/20 active:bg-white/30 text-white rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Buscar
+            </button>
+          </div>
+        </motion.div>
 
-            <div className="flex items-center text-primary-400 text-sm font-medium">
-              <span>Generar reporte</span>
-              <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
+        {/* Reporte */}
+        {cargando ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="glass rounded-2xl p-6"
+          >
+            <div className="animate-pulse space-y-4">
+              <div className="h-6 bg-white/10 rounded w-1/3"></div>
+              <div className="h-4 bg-white/10 rounded w-1/2"></div>
+              <div className="grid grid-cols-2 gap-4 mt-6">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="h-24 bg-white/10 rounded-xl"></div>
+                ))}
+              </div>
             </div>
           </motion.div>
-        ))}
-      </div>
+        ) : reporte ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="space-y-6"
+          >
+            {/* Período */}
+            <div className="glass rounded-2xl p-6">
+              <h3 className="text-lg font-semibold text-white mb-2">Período del reporte</h3>
+              <p className="text-white/80">
+                {formatearFecha(fechaInicio)} - {formatearFecha(fechaFin)}
+              </p>
+              <p className="text-sm text-white/60 mt-2">
+                Total de sesiones: {reporte.sesiones?.length || 0}
+              </p>
+            </div>
 
-      {/* Mensaje de desarrollo */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.7 }}
-        className="glass rounded-2xl p-6 mt-6 text-center"
-      >
-        <svg className="w-12 h-12 mx-auto mb-3 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <p className="text-slate-400">
-          Los reportes estarán disponibles próximamente
-        </p>
-      </motion.div>
+            {/* Resumen financiero */}
+            <div className="glass rounded-2xl p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <DollarSign className="w-5 h-5 text-primary-400" />
+                <h3 className="text-lg font-semibold text-white">Resumen financiero</h3>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                  <p className="text-sm text-white/60 mb-1">Ingresos totales</p>
+                  <p className="text-2xl font-bold text-green-400">
+                    {formatearMoneda(reporte.totalIngresos)}
+                  </p>
+                </div>
+                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                  <p className="text-sm text-white/60 mb-1">Gastos totales</p>
+                  <p className="text-2xl font-bold text-red-400">
+                    {formatearMoneda(reporte.totalGastos)}
+                  </p>
+                </div>
+                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                  <p className="text-sm text-white/60 mb-1">Ingresos netos</p>
+                  <p className="text-2xl font-bold text-primary-400">
+                    {formatearMoneda(reporte.totalNeto)}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Distribución */}
+            <div className="glass rounded-2xl p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Users className="w-5 h-5 text-primary-400" />
+                <h3 className="text-lg font-semibold text-white">Distribución de ingresos</h3>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="bg-gradient-to-br from-purple-500/20 to-purple-600/10 rounded-xl p-4 border border-purple-400/30">
+                  <p className="text-sm text-purple-200 mb-1">Itzel</p>
+                  <p className="text-2xl font-bold text-white">
+                    {formatearMoneda(reporte.distribucion.itzel)}
+                  </p>
+                </div>
+                <div className="bg-gradient-to-br from-blue-500/20 to-blue-600/10 rounded-xl p-4 border border-blue-400/30">
+                  <p className="text-sm text-blue-200 mb-1">Cristian</p>
+                  <p className="text-2xl font-bold text-white">
+                    {formatearMoneda(reporte.distribucion.cristian)}
+                  </p>
+                </div>
+                <div className="bg-gradient-to-br from-green-500/20 to-green-600/10 rounded-xl p-4 border border-green-400/30">
+                  <p className="text-sm text-green-200 mb-1">César</p>
+                  <p className="text-2xl font-bold text-white">
+                    {formatearMoneda(reporte.distribucion.cesar)}
+                  </p>
+                </div>
+                <div className="bg-gradient-to-br from-amber-500/20 to-amber-600/10 rounded-xl p-4 border border-amber-400/30">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Wallet className="w-4 h-4 text-amber-200" />
+                    <p className="text-sm text-amber-200">Caja de ahorro</p>
+                  </div>
+                  <p className="text-2xl font-bold text-white">
+                    {formatearMoneda(reporte.totalCajas)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Verificación de suma */}
+              <div className="mt-4 pt-4 border-t border-white/10">
+                <div className="flex justify-between items-center">
+                  <p className="text-sm text-white/60">Total distribuido</p>
+                  <p className="text-lg font-semibold text-white">
+                    {formatearMoneda(
+                      (reporte.distribucion.itzel || 0) +
+                      (reporte.distribucion.cristian || 0) +
+                      (reporte.distribucion.cesar || 0) +
+                      (reporte.totalCajas || 0)
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="glass rounded-2xl p-12 text-center"
+          >
+            <Calendar className="w-16 h-16 text-white/20 mx-auto mb-4" />
+            <p className="text-white/60">Selecciona un período para ver el reporte</p>
+          </motion.div>
+        )}
+      </div>
     </div>
   );
 }

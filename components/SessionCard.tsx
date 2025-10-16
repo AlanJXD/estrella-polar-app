@@ -24,6 +24,23 @@ interface SessionCardProps {
   onClick: () => void;
 }
 
+const formatearHora = (hora: string): string => {
+  try {
+    const date = new Date(hora);
+    return format(date, 'h:mm a');
+  } catch {
+    // Si falla, intentar extraer solo HH:mm si es un string
+    if (typeof hora === 'string' && hora.includes(':')) {
+      const [hours, minutes] = hora.substring(0, 5).split(':');
+      const h = parseInt(hours);
+      const period = h >= 12 ? 'PM' : 'AM';
+      const hour12 = h % 12 || 12;
+      return `${hour12}:${minutes} ${period}`;
+    }
+    return '12:00 AM';
+  }
+};
+
 export default function SessionCard({ sesion, onClick }: SessionCardProps) {
   return (
     <motion.div
@@ -48,7 +65,7 @@ export default function SessionCard({ sesion, onClick }: SessionCardProps) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <span className="text-sm font-medium">
-            {sesion.horaInicial.substring(0, 5)} - {sesion.horaFinal.substring(0, 5)}
+            {formatearHora(sesion.horaInicial)} - {formatearHora(sesion.horaFinal)}
           </span>
         </div>
       </div>

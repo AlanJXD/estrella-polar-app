@@ -9,6 +9,7 @@ import { useAuthStore } from '@/lib/store/authStore';
 import { sesionesApi } from '@/lib/api/sesiones';
 import Calendar from '@/components/Calendar';
 import SessionCard from '@/components/SessionCard';
+import NuevaSesionModal from '@/components/NuevaSesionModal';
 
 interface Sesion {
   id: number;
@@ -25,6 +26,23 @@ interface Sesion {
   restante: number;
 }
 
+const formatearHora = (hora: string): string => {
+  try {
+    const date = new Date(hora);
+    return format(date, 'h:mm a');
+  } catch {
+    // Si falla, intentar extraer solo HH:mm si es un string
+    if (typeof hora === 'string' && hora.includes(':')) {
+      const [hours, minutes] = hora.substring(0, 5).split(':');
+      const h = parseInt(hours);
+      const period = h >= 12 ? 'PM' : 'AM';
+      const hour12 = h % 12 || 12;
+      return `${hour12}:${minutes} ${period}`;
+    }
+    return '12:00 AM';
+  }
+};
+
 export default function AgendaPage() {
   const router = useRouter();
   const { isAuthenticated, usuario, clearAuth } = useAuthStore();
@@ -33,6 +51,7 @@ export default function AgendaPage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedSesion, setSelectedSesion] = useState<Sesion | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [modalNuevaSesion, setModalNuevaSesion] = useState(false);
 
   // Esperar a que el store se hidrate
   useEffect(() => {
@@ -90,9 +109,55 @@ export default function AgendaPage() {
 
   if (!isHydrated || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="glass-strong rounded-2xl p-8">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
+      <div className="min-h-screen p-4 md:p-6 lg:p-8">
+        {/* Header Skeleton */}
+        <div className="glass-strong rounded-2xl p-6 mb-6 shadow-xl">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex-1">
+              <div className="h-8 bg-white/10 rounded-lg w-32 mb-2 animate-pulse"></div>
+              <div className="h-4 bg-white/10 rounded w-48 animate-pulse"></div>
+            </div>
+            <div className="flex gap-3">
+              <div className="h-10 w-32 bg-white/10 rounded-xl animate-pulse"></div>
+              <div className="h-10 w-20 bg-white/10 rounded-xl animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Calendar Skeleton */}
+          <div className="lg:col-span-2">
+            <div className="glass-strong rounded-2xl p-6 shadow-xl">
+              <div className="h-8 bg-white/10 rounded-lg w-40 mb-6 animate-pulse"></div>
+              <div className="grid grid-cols-7 gap-2">
+                {[...Array(35)].map((_, i) => (
+                  <div key={i} className="aspect-square bg-white/10 rounded-lg animate-pulse"></div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Sessions List Skeleton */}
+          <div className="lg:col-span-1">
+            <div className="glass-strong rounded-2xl p-6 shadow-xl">
+              <div className="flex items-center justify-between mb-6">
+                <div className="h-6 bg-white/10 rounded w-32 animate-pulse"></div>
+                <div className="h-6 w-20 bg-white/10 rounded-lg animate-pulse"></div>
+              </div>
+              <div className="space-y-3">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="glass rounded-xl p-4">
+                    <div className="h-5 bg-white/10 rounded w-3/4 mb-2 animate-pulse"></div>
+                    <div className="h-4 bg-white/10 rounded w-1/2 mb-3 animate-pulse"></div>
+                    <div className="flex gap-4">
+                      <div className="h-10 bg-white/10 rounded w-20 animate-pulse"></div>
+                      <div className="h-10 bg-white/10 rounded w-20 animate-pulse"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -123,7 +188,7 @@ export default function AgendaPage() {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => router.push('/sesiones/nueva')}
+              onClick={() => setModalNuevaSesion(true)}
               className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-medium shadow-lg shadow-primary-500/30 transition-colors"
             >
               + Nueva Sesión
@@ -261,7 +326,7 @@ export default function AgendaPage() {
                 <div>
                   <p className="text-sm text-slate-400">Horario</p>
                   <p className="font-semibold text-lg">
-                    {selectedSesion.horaInicial.substring(0, 5)} - {selectedSesion.horaFinal.substring(0, 5)}
+                    {formatearHora(selectedSesion.horaInicial)} - {formatearHora(selectedSesion.horaFinal)}
                   </p>
                   <p className="text-sm text-slate-300">
                     {format(new Date(selectedSesion.fecha), "d 'de' MMMM, yyyy", { locale: es })}
@@ -306,6 +371,13 @@ export default function AgendaPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Modal Nueva Sesión */}
+      <NuevaSesionModal
+        isOpen={modalNuevaSesion}
+        onClose={() => setModalNuevaSesion(false)}
+        onSuccess={cargarSesiones}
+      />
     </div>
   );
 }

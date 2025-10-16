@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Splash Screens - Estrella Polar</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            padding: 20px;
+            background: #1e293b;
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        canvas {
+            border: 1px solid #334155;
+            margin: 10px 0;
+            display: block;
+        }
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1d4ed8;
+        }
+        .progress {
+            margin: 20px 0;
+            padding: 10px;
+            background: #334155;
+            border-radius: 8px;
+        }
+        h1 {
+            color: #2563eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Generador de Splash Screens - Estrella Polar</h1>
+        <p>Haz clic en el botón para generar todas las splash screens para iOS</p>
+        <button onclick="generateAll()">Generar Todas las Splash Screens</button>
+        <div class="progress" id="progress"></div>
+        <canvas id="canvas"></canvas>
+    </div>
+
+    <script>
+        const sizes = [
+            { name: 'apple-splash-2048-2732.jpg', width: 2048, height: 2732 }, // iPad Pro 12.9"
+            { name: 'apple-splash-1668-2388.jpg', width: 1668, height: 2388 }, // iPad Pro 11"
+            { name: 'apple-splash-1536-2048.jpg', width: 1536, height: 2048 }, // iPad 9.7"
+            { name: 'apple-splash-1290-2796.jpg', width: 1290, height: 2796 }, // iPhone 14 Pro Max
+            { name: 'apple-splash-1179-2556.jpg', width: 1179, height: 2556 }, // iPhone 14 Pro
+            { name: 'apple-splash-1284-2778.jpg', width: 1284, height: 2778 }, // iPhone 12/13/14 Pro Max
+            { name: 'apple-splash-1170-2532.jpg', width: 1170, height: 2532 }, // iPhone 12/13/14 Pro
+            { name: 'apple-splash-1125-2436.jpg', width: 1125, height: 2436 }, // iPhone X/XS/11 Pro
+            { name: 'apple-splash-828-1792.jpg', width: 828, height: 1792 },   // iPhone XR/11
+            { name: 'apple-splash-750-1334.jpg', width: 750, height: 1334 }    // iPhone 6/7/8
+        ];
+
+        function drawSplash(canvas, width, height) {
+            const ctx = canvas.getContext('2d');
+            canvas.width = width;
+            canvas.height = height;
+
+            // Fondo oscuro con gradiente
+            const gradient = ctx.createLinearGradient(0, 0, 0, height);
+            gradient.addColorStop(0, '#0f172a');
+            gradient.addColorStop(1, '#1e293b');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, width, height);
+
+            // Estrella en el centro
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const starSize = Math.min(width, height) * 0.2;
+
+            // Dibujar estrella brillante
+            ctx.save();
+            ctx.translate(centerX, centerY);
+
+            // Glow effect
+            for (let i = 0; i < 3; i++) {
+                ctx.beginPath();
+                drawStar(ctx, 0, 0, 8, starSize * (1 + i * 0.3), starSize * 0.5 * (1 + i * 0.3));
+                ctx.fillStyle = `rgba(37, 99, 235, ${0.3 - i * 0.1})`;
+                ctx.fill();
+            }
+
+            // Estrella principal
+            ctx.beginPath();
+            drawStar(ctx, 0, 0, 8, starSize, starSize * 0.5);
+            ctx.fillStyle = '#2563eb';
+            ctx.fill();
+
+            // Estrella interna
+            ctx.beginPath();
+            drawStar(ctx, 0, 0, 8, starSize * 0.6, starSize * 0.3);
+            ctx.fillStyle = '#60a5fa';
+            ctx.fill();
+
+            ctx.restore();
+
+            // Texto
+            const fontSize = Math.min(width, height) * 0.06;
+            ctx.font = `600 ${fontSize}px system-ui, -apple-system, sans-serif`;
+            ctx.fillStyle = '#f1f5f9';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('Estrella Polar', centerX, centerY + starSize * 1.5);
+
+            // Subtítulo
+            const subtitleSize = fontSize * 0.5;
+            ctx.font = `400 ${subtitleSize}px system-ui, -apple-system, sans-serif`;
+            ctx.fillStyle = '#94a3b8';
+            ctx.fillText('Estudio Fotográfico', centerX, centerY + starSize * 1.5 + fontSize * 1.2);
+        }
+
+        function drawStar(ctx, cx, cy, spikes, outerRadius, innerRadius) {
+            let rot = Math.PI / 2 * 3;
+            let x = cx;
+            let y = cy;
+            const step = Math.PI / spikes;
+
+            ctx.moveTo(cx, cy - outerRadius);
+            for (let i = 0; i < spikes; i++) {
+                x = cx + Math.cos(rot) * outerRadius;
+                y = cy + Math.sin(rot) * outerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+
+                x = cx + Math.cos(rot) * innerRadius;
+                y = cy + Math.sin(rot) * innerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+            }
+            ctx.lineTo(cx, cy - outerRadius);
+            ctx.closePath();
+        }
+
+        async function generateAll() {
+            const canvas = document.getElementById('canvas');
+            const progress = document.getElementById('progress');
+
+            for (let i = 0; i < sizes.length; i++) {
+                const size = sizes[i];
+                progress.innerHTML = `Generando ${size.name} (${i + 1}/${sizes.length})...`;
+
+                drawSplash(canvas, size.width, size.height);
+
+                // Convertir a blob y descargar
+                await new Promise(resolve => {
+                    canvas.toBlob(blob => {
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = size.name;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                        setTimeout(resolve, 100);
+                    }, 'image/jpeg', 0.95);
+                });
+            }
+
+            progress.innerHTML = '¡Todas las splash screens generadas! Muévelas a la carpeta public/splash/';
+        }
+
+        // Previsualizar la primera splash screen al cargar
+        window.onload = () => {
+            const canvas = document.getElementById('canvas');
+            drawSplash(canvas, 1170, 2532);
+        };
+    </script>
+</body>
+</html>

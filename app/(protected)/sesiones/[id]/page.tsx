@@ -47,6 +47,15 @@ interface Sesion {
       };
     };
   }>;
+  distribucion?: {
+    porcentajeItzel: string;
+    porcentajeCristian: string;
+    porcentajeCesar: string;
+    montoItzel: string;
+    montoCristian: string;
+    montoCesar: string;
+    neto: string;
+  };
 }
 
 export default function SesionDetallePage() {
@@ -64,12 +73,30 @@ export default function SesionDetallePage() {
   const [agregandoGasto, setAgregandoGasto] = useState(false);
   const [actualizandoCaja, setActualizandoCaja] = useState(false);
   const [agregandoLiquidacion, setAgregandoLiquidacion] = useState(false);
+  const [actualizandoDistribucion, setActualizandoDistribucion] = useState(false);
 
   // Estados para modales
   const [modalIngresoExtra, setModalIngresoExtra] = useState(false);
   const [modalGasto, setModalGasto] = useState(false);
   const [modalMontoCaja, setModalMontoCaja] = useState(false);
   const [modalLiquidacion, setModalLiquidacion] = useState(false);
+  const [modalDistribucion, setModalDistribucion] = useState(false);
+
+  // Estado para editar distribución
+  const [editandoDistribucion, setEditandoDistribucion] = useState(false);
+  const [distribucionForm, setDistribucionForm] = useState({
+    porcentajeItzel: '33.33',
+    porcentajeCristian: '33.33',
+    porcentajeCesar: '33.34',
+  });
+
+  // Estado para toast/alertas
+  const [toast, setToast] = useState<{message: string; type: 'success' | 'error' | 'warning'} | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' | 'warning' = 'error') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   // Form states
   const [formData, setFormData] = useState({
@@ -125,6 +152,14 @@ export default function SesionDetallePage() {
           montoCaja: s.montoCaja,
         });
         setMontoCajaForm(s.montoCaja);
+        // Inicializar distribución si existe
+        if (s.distribucion) {
+          setDistribucionForm({
+            porcentajeItzel: s.distribucion.porcentajeItzel,
+            porcentajeCristian: s.distribucion.porcentajeCristian,
+            porcentajeCesar: s.distribucion.porcentajeCesar,
+          });
+        }
       }
     } catch (error) {
       console.error('Error al cargar sesión:', error);
@@ -144,7 +179,7 @@ export default function SesionDetallePage() {
       }
     } catch (error) {
       console.error('Error al actualizar sesión:', error);
-      alert('Error al guardar cambios');
+      showToast('Error al guardar cambios');
     } finally {
       setGuardando(false);
     }
@@ -162,10 +197,11 @@ export default function SesionDetallePage() {
         setModalIngresoExtra(false);
         setIngresoExtraForm({ concepto: '', monto: '' });
         await cargarSesion();
+        showToast('Ingreso extra agregado correctamente', 'success');
       }
     } catch (error) {
       console.error('Error al agregar ingreso extra:', error);
-      alert('Error al agregar ingreso extra');
+      showToast('Error al agregar ingreso extra');
     } finally {
       setAgregandoIngreso(false);
     }
@@ -183,10 +219,11 @@ export default function SesionDetallePage() {
         setModalGasto(false);
         setGastoForm({ concepto: '', monto: '' });
         await cargarSesion();
+        showToast('Gasto agregado correctamente', 'success');
       }
     } catch (error) {
       console.error('Error al agregar gasto:', error);
-      alert('Error al agregar gasto');
+      showToast('Error al agregar gasto');
     } finally {
       setAgregandoGasto(false);
     }
@@ -202,10 +239,11 @@ export default function SesionDetallePage() {
       if (response.success) {
         setModalMontoCaja(false);
         await cargarSesion();
+        showToast('Monto en caja actualizado correctamente', 'success');
       }
     } catch (error) {
       console.error('Error al actualizar monto en caja:', error);
-      alert('Error al actualizar monto en caja');
+      showToast('Error al actualizar monto en caja');
     } finally {
       setActualizandoCaja(false);
     }
@@ -223,12 +261,46 @@ export default function SesionDetallePage() {
         setModalLiquidacion(false);
         setLiquidacionForm({ monto: '', cajaDestinoNombre: 'BBVA' });
         await cargarSesion();
+        showToast('Liquidación agregada correctamente', 'success');
       }
     } catch (error) {
       console.error('Error al agregar liquidación:', error);
-      alert('Error al agregar liquidación');
+      showToast('Error al agregar liquidación');
     } finally {
       setAgregandoLiquidacion(false);
+    }
+  };
+
+  const handleActualizarDistribucion = async () => {
+    if (actualizandoDistribucion) return;
+
+    // Validar que sumen 100
+    const suma = Number(distribucionForm.porcentajeItzel) +
+                 Number(distribucionForm.porcentajeCristian) +
+                 Number(distribucionForm.porcentajeCesar);
+
+    if (Math.abs(suma - 100) > 0.01) {
+      showToast('Los porcentajes deben sumar 100%', 'warning');
+      return;
+    }
+
+    try {
+      setActualizandoDistribucion(true);
+      const response = await sesionesApi.actualizarDistribucion(Number(sesionId), {
+        porcentajeItzel: Number(distribucionForm.porcentajeItzel),
+        porcentajeCristian: Number(distribucionForm.porcentajeCristian),
+        porcentajeCesar: Number(distribucionForm.porcentajeCesar),
+      });
+      if (response.success) {
+        setEditandoDistribucion(false);
+        await cargarSesion();
+        showToast('Distribución actualizada correctamente', 'success');
+      }
+    } catch (error) {
+      console.error('Error al actualizar distribución:', error);
+      showToast('Error al actualizar distribución');
+    } finally {
+      setActualizandoDistribucion(false);
     }
   };
 
@@ -271,9 +343,12 @@ export default function SesionDetallePage() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setEditando(true)}
-                className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-medium shadow-lg shadow-primary-500/30 transition-colors"
+                className="p-2 bg-primary-500 hover:bg-primary-600 text-white rounded-xl shadow-lg shadow-primary-500/30 transition-colors"
+                title="Editar"
               >
-                Editar
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
               </motion.button>
             ) : (
               <>
@@ -282,17 +357,21 @@ export default function SesionDetallePage() {
                   whileTap={{ scale: guardando ? 1 : 0.95 }}
                   onClick={handleGuardarCambios}
                   disabled={guardando}
-                  className={`px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-xl font-medium transition-colors flex items-center gap-2 ${
+                  className={`p-2 bg-green-500 hover:bg-green-600 text-white rounded-xl transition-colors ${
                     guardando ? 'opacity-70 cursor-not-allowed' : ''
                   }`}
+                  title="Guardar"
                 >
-                  {guardando && (
-                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                  {guardando ? (
+                    <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
+                  ) : (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
                   )}
-                  {guardando ? 'Guardando...' : 'Guardar'}
                 </motion.button>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
@@ -302,9 +381,12 @@ export default function SesionDetallePage() {
                     cargarSesion();
                   }}
                   disabled={guardando}
-                  className="px-4 py-2 glass hover:bg-white/10 text-white rounded-xl font-medium transition-colors"
+                  className="p-2 glass hover:bg-white/10 text-white rounded-xl transition-colors"
+                  title="Cancelar"
                 >
-                  Cancelar
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                 </motion.button>
               </>
             )}
@@ -589,6 +671,99 @@ export default function SesionDetallePage() {
                   ${(Number(sesion.anticipo) + totalLiquidaciones + totalIngresos - totalGastos).toFixed(2)}
                 </span>
               </div>
+
+              {/* Distribución de Ingresos */}
+              {sesion.distribucion && (
+                <div className="mt-6 pt-4 border-t-2 border-white/20">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-white font-bold">Distribución de Ingresos</h3>
+                    <button
+                      onClick={() => setEditandoDistribucion(!editandoDistribucion)}
+                      className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                    >
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  {editandoDistribucion ? (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Itzel (%)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={distribucionForm.porcentajeItzel}
+                          onChange={(e) => setDistribucionForm({ ...distribucionForm, porcentajeItzel: e.target.value })}
+                          className="w-full px-3 py-2 rounded-lg glass border border-white/20 bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Cristian (%)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={distribucionForm.porcentajeCristian}
+                          onChange={(e) => setDistribucionForm({ ...distribucionForm, porcentajeCristian: e.target.value })}
+                          className="w-full px-3 py-2 rounded-lg glass border border-white/20 bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">César (%)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={distribucionForm.porcentajeCesar}
+                          onChange={(e) => setDistribucionForm({ ...distribucionForm, porcentajeCesar: e.target.value })}
+                          className="w-full px-3 py-2 rounded-lg glass border border-white/20 bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        />
+                      </div>
+                      <div className="flex gap-2 pt-2">
+                        <button
+                          onClick={handleActualizarDistribucion}
+                          disabled={actualizandoDistribucion}
+                          className={`flex-1 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-colors ${
+                            actualizandoDistribucion ? 'opacity-70 cursor-not-allowed' : ''
+                          }`}
+                        >
+                          {actualizandoDistribucion ? 'Guardando...' : 'Guardar'}
+                        </button>
+                        <button
+                          onClick={() => {
+                            setEditandoDistribucion(false);
+                            if (sesion.distribucion) {
+                              setDistribucionForm({
+                                porcentajeItzel: sesion.distribucion.porcentajeItzel,
+                                porcentajeCristian: sesion.distribucion.porcentajeCristian,
+                                porcentajeCesar: sesion.distribucion.porcentajeCesar,
+                              });
+                            }
+                          }}
+                          className="px-4 py-2 glass hover:bg-white/10 text-white rounded-lg text-sm font-medium transition-colors"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex justify-between py-2 border-b border-white/10">
+                        <span className="text-slate-400">Itzel ({Number(sesion.distribucion.porcentajeItzel).toFixed(2)}%)</span>
+                        <span className="text-green-400 font-medium">${Number(sesion.distribucion.montoItzel).toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between py-2 border-b border-white/10">
+                        <span className="text-slate-400">Cristian ({Number(sesion.distribucion.porcentajeCristian).toFixed(2)}%)</span>
+                        <span className="text-green-400 font-medium">${Number(sesion.distribucion.montoCristian).toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between py-2">
+                        <span className="text-slate-400">César ({Number(sesion.distribucion.porcentajeCesar).toFixed(2)}%)</span>
+                        <span className="text-green-400 font-medium">${Number(sesion.distribucion.montoCesar).toFixed(2)}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </motion.div>
 
@@ -623,26 +798,58 @@ export default function SesionDetallePage() {
             className="glass-strong rounded-2xl p-6 shadow-xl"
           >
             <h2 className="text-lg font-bold text-white mb-4">Estado</h2>
-            <div className="space-y-2">
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-slate-400">Editado</span>
-                <span className={`px-3 py-1 rounded-lg text-sm font-medium ${
-                  sesion.editado === 1
-                    ? 'bg-blue-500/20 text-blue-400'
-                    : 'bg-slate-500/20 text-slate-400'
-                }`}>
+                <button
+                  onClick={async () => {
+                    try {
+                      const response = await sesionesApi.actualizar(Number(sesionId), {
+                        editado: sesion.editado === 1 ? 0 : 1
+                      });
+                      if (response.success) {
+                        await cargarSesion();
+                        showToast('Estado actualizado correctamente', 'success');
+                      }
+                    } catch (error) {
+                      console.error('Error al actualizar estado:', error);
+                      showToast('Error al actualizar estado');
+                    }
+                  }}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    sesion.editado === 1
+                      ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'
+                      : 'bg-slate-500/20 text-slate-400 hover:bg-slate-500/30'
+                  }`}
+                >
                   {sesion.editado === 1 ? 'Sí' : 'No'}
-                </span>
+                </button>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-slate-400">Entregado</span>
-                <span className={`px-3 py-1 rounded-lg text-sm font-medium ${
-                  sesion.entregado === 1
-                    ? 'bg-green-500/20 text-green-400'
-                    : 'bg-yellow-500/20 text-yellow-400'
-                }`}>
+                <button
+                  onClick={async () => {
+                    try {
+                      const response = await sesionesApi.actualizar(Number(sesionId), {
+                        entregado: sesion.entregado === 1 ? 0 : 1
+                      });
+                      if (response.success) {
+                        await cargarSesion();
+                        showToast('Estado actualizado correctamente', 'success');
+                      }
+                    } catch (error) {
+                      console.error('Error al actualizar estado:', error);
+                      showToast('Error al actualizar estado');
+                    }
+                  }}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    sesion.entregado === 1
+                      ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
+                      : 'bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30'
+                  }`}
+                >
                   {sesion.entregado === 1 ? 'Sí' : 'Pendiente'}
-                </span>
+                </button>
               </div>
             </div>
           </motion.div>
@@ -942,6 +1149,51 @@ export default function SesionDetallePage() {
                 </div>
               </div>
             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Toast/Alert moderna */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -50 }}
+            className="fixed top-4 right-4 z-[100] max-w-md"
+          >
+            <div className={`glass-strong rounded-xl p-4 shadow-2xl border-l-4 ${
+              toast.type === 'success' ? 'border-green-500' :
+              toast.type === 'warning' ? 'border-yellow-500' :
+              'border-red-500'
+            }`}>
+              <div className="flex items-center gap-3">
+                {toast.type === 'success' && (
+                  <svg className="w-6 h-6 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                )}
+                {toast.type === 'warning' && (
+                  <svg className="w-6 h-6 text-yellow-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                )}
+                {toast.type === 'error' && (
+                  <svg className="w-6 h-6 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                )}
+                <p className="text-white font-medium">{toast.message}</p>
+                <button
+                  onClick={() => setToast(null)}
+                  className="ml-auto p-1 hover:bg-white/10 rounded-lg transition-colors"
+                >
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

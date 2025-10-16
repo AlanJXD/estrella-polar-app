@@ -62,4 +62,17 @@ export const sesionesApi = {
     const response = await apiClient.post(`/sesiones/${id}/gastos`, data);
     return response.data;
   },
+
+  actualizarDistribucion: async (
+    id: number,
+    data: { porcentajeItzel: number; porcentajeCristian: number; porcentajeCesar: number }
+  ) => {
+    const response = await apiClient.put(`/sesiones/${id}/distribucion`, data);
+    return response.data;
+  },
+
+  reporteDistribucion: async (params?: { fechaInicio?: string; fechaFin?: string }) => {
+    const response = await apiClient.get('/sesiones/reporte/distribucion', { params });
+    return response.data;
+  },
 };
