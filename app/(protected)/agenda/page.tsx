@@ -10,6 +10,7 @@ import { sesionesApi } from '@/lib/api/sesiones';
 import Calendar from '@/components/Calendar';
 import SessionCard from '@/components/SessionCard';
 import NuevaSesionModal from '@/components/NuevaSesionModal';
+import { Shimmer } from '@/components/Shimmer';
 
 interface Sesion {
   id: number;
@@ -114,12 +115,12 @@ export default function AgendaPage() {
         <div className="glass-strong rounded-2xl p-6 mb-6 shadow-xl">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex-1">
-              <div className="h-8 bg-white/10 rounded-lg w-32 mb-2 animate-pulse"></div>
-              <div className="h-4 bg-white/10 rounded w-48 animate-pulse"></div>
+              <Shimmer className="h-8 w-32 mb-2" />
+              <Shimmer className="h-4 w-48" />
             </div>
             <div className="flex gap-3">
-              <div className="h-10 w-32 bg-white/10 rounded-xl animate-pulse"></div>
-              <div className="h-10 w-20 bg-white/10 rounded-xl animate-pulse"></div>
+              <Shimmer className="h-10 w-32 rounded-xl" />
+              <Shimmer className="h-10 w-20 rounded-xl" />
             </div>
           </div>
         </div>
@@ -128,10 +129,10 @@ export default function AgendaPage() {
           {/* Calendar Skeleton */}
           <div className="lg:col-span-2">
             <div className="glass-strong rounded-2xl p-6 shadow-xl">
-              <div className="h-8 bg-white/10 rounded-lg w-40 mb-6 animate-pulse"></div>
+              <Shimmer className="h-8 w-40 mb-6" />
               <div className="grid grid-cols-7 gap-2">
                 {[...Array(35)].map((_, i) => (
-                  <div key={i} className="aspect-square bg-white/10 rounded-lg animate-pulse"></div>
+                  <Shimmer key={i} className="aspect-square" />
                 ))}
               </div>
             </div>
@@ -141,17 +142,17 @@ export default function AgendaPage() {
           <div className="lg:col-span-1">
             <div className="glass-strong rounded-2xl p-6 shadow-xl">
               <div className="flex items-center justify-between mb-6">
-                <div className="h-6 bg-white/10 rounded w-32 animate-pulse"></div>
-                <div className="h-6 w-20 bg-white/10 rounded-lg animate-pulse"></div>
+                <Shimmer className="h-6 w-32" />
+                <Shimmer className="h-6 w-20" />
               </div>
               <div className="space-y-3">
                 {[...Array(4)].map((_, i) => (
                   <div key={i} className="glass rounded-xl p-4">
-                    <div className="h-5 bg-white/10 rounded w-3/4 mb-2 animate-pulse"></div>
-                    <div className="h-4 bg-white/10 rounded w-1/2 mb-3 animate-pulse"></div>
+                    <Shimmer className="h-5 w-3/4 mb-2" />
+                    <Shimmer className="h-4 w-1/2 mb-3" />
                     <div className="flex gap-4">
-                      <div className="h-10 bg-white/10 rounded w-20 animate-pulse"></div>
-                      <div className="h-10 bg-white/10 rounded w-20 animate-pulse"></div>
+                      <Shimmer className="h-10 w-20" />
+                      <Shimmer className="h-10 w-20" />
                     </div>
                   </div>
                 ))}

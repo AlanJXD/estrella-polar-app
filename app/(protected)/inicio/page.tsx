@@ -77,7 +77,7 @@ export default function InicioPage() {
         className="glass-strong rounded-2xl p-6 mb-6 shadow-xl"
       >
         <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">
-          Bienvenido, {usuario?.nombre}
+          {usuario?.id === 3 ? 'Bienvenida' : 'Bienvenido'}, {usuario?.nombre}
         </h1>
         <p className="text-slate-300 text-sm">
           Resumen del mes de {getMesActual()}

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { paquetesApi, Paquete } from '@/lib/api/paquetes';
+import { Shimmer } from '@/components/Shimmer';
 
 export default function CatalogosPage() {
   const [paquetes, setPaquetes] = useState<Paquete[]>([]);
@@ -192,11 +193,11 @@ export default function CatalogosPage() {
         {loading ? (
           <>
             {[1, 2, 3].map((i) => (
-              <div key={i} className="glass-strong rounded-2xl p-6 shadow-xl animate-pulse">
-                <div className="h-12 bg-white/10 rounded mb-4"></div>
-                <div className="h-6 bg-white/10 rounded mb-2"></div>
-                <div className="h-4 bg-white/10 rounded mb-4"></div>
-                <div className="h-20 bg-white/10 rounded"></div>
+              <div key={i} className="glass-strong rounded-2xl p-6 shadow-xl">
+                <Shimmer className="h-12 mb-4" />
+                <Shimmer className="h-6 mb-2" />
+                <Shimmer className="h-4 mb-4" />
+                <Shimmer className="h-20" />
               </div>
             ))}
           </>

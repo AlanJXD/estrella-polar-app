@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cajasApi, Caja, MovimientoCaja } from '@/lib/api/cajas';
+import { Shimmer } from '@/components/Shimmer';
 
 export default function CajasPage() {
   const [cajas, setCajas] = useState<Caja[]>([]);
@@ -128,8 +129,8 @@ export default function CajasPage() {
       <div className="min-h-screen p-4 md:p-6 lg:p-8">
         {/* Header Skeleton */}
         <div className="glass-strong rounded-2xl p-6 mb-6 shadow-xl">
-          <div className="h-8 bg-white/10 rounded-lg w-32 mb-2 animate-pulse"></div>
-          <div className="h-4 bg-white/10 rounded w-64 animate-pulse"></div>
+          <Shimmer className="h-8 w-32 mb-2" />
+          <Shimmer className="h-4 w-64" />
         </div>
 
         {/* Cajas Grid Skeleton */}
@@ -138,18 +139,18 @@ export default function CajasPage() {
             <div key={i} className="glass-strong rounded-2xl p-6 shadow-xl">
               {/* Header */}
               <div className="flex items-center justify-between mb-4">
-                <div className="h-6 bg-white/10 rounded w-20 animate-pulse"></div>
-                <div className="w-10 h-10 bg-white/10 rounded-lg animate-pulse"></div>
+                <Shimmer className="h-6 w-20" />
+                <Shimmer className="w-10 h-10" />
               </div>
 
               {/* Amount */}
-              <div className="h-10 bg-white/10 rounded-lg w-32 mb-2 animate-pulse"></div>
-              <div className="h-4 bg-white/10 rounded w-24 mb-4 animate-pulse"></div>
+              <Shimmer className="h-10 w-32 mb-2" />
+              <Shimmer className="h-4 w-24 mb-4" />
 
               {/* Buttons */}
               <div className="flex gap-2">
-                <div className="flex-1 h-10 bg-white/10 rounded-lg animate-pulse"></div>
-                <div className="flex-1 h-10 bg-white/10 rounded-lg animate-pulse"></div>
+                <Shimmer className="flex-1 h-10" />
+                <Shimmer className="flex-1 h-10" />
               </div>
             </div>
           ))}
