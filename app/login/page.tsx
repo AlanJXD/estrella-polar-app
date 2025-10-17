@@ -113,13 +113,17 @@ export default function LoginPage() {
             transition={{ delay: 0.2, duration: 0.5 }}
             className="text-center mb-8"
           >
-            <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-primary-400 to-primary-600 rounded-2xl flex items-center justify-center shadow-lg shadow-primary-500/50">
-              <span className="text-3xl font-bold text-white">EP</span>
+            <div className="w-20 h-20 mx-auto mb-4 rounded-2xl flex items-center justify-center shadow-lg shadow-primary-500/50 overflow-hidden">
+              <img
+                src="/icons/web-app-manifest-512x512.png"
+                alt="Estrella Polar Logo"
+                className="w-full h-full object-cover"
+              />
             </div>
             <h1 className="text-3xl font-bold text-white mb-2">
               Estrella Polar
             </h1>
-            <p className="text-slate-300 text-sm">Estudio de Fotografía</p>
+            <p className="text-slate-300 text-sm">Estudio</p>
           </motion.div>
 
           {/* Form */}

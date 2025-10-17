@@ -225,40 +225,43 @@ export default function SesionesPage() {
         transition={{ delay: 0.1 }}
         className="glass rounded-2xl p-4 mb-6"
       >
-        <div className="flex flex-wrap gap-3">
+        <div className="grid grid-cols-3 gap-3">
           <button
             onClick={() => setFiltro('todas')}
-            className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-sm sm:text-base ${
+            className={`px-2 sm:px-4 py-2 rounded-lg font-medium transition-all text-xs sm:text-sm md:text-base ${
               filtro === 'todas'
                 ? 'bg-primary-500 text-white'
                 : 'bg-white/5 text-slate-300 hover:bg-white/10'
             }`}
           >
-            Todas ({sesiones.length})
+            <span className="hidden sm:inline">Todas ({sesiones.length})</span>
+            <span className="sm:hidden">Todas</span>
           </button>
           <button
             onClick={() => setFiltro('pendientes')}
-            className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-sm sm:text-base ${
+            className={`px-2 sm:px-4 py-2 rounded-lg font-medium transition-all text-xs sm:text-sm md:text-base ${
               filtro === 'pendientes'
                 ? 'bg-yellow-500 text-white'
                 : 'bg-white/5 text-slate-300 hover:bg-white/10'
             }`}
           >
-            Pendientes ({sesiones.filter(s => {
+            <span className="hidden sm:inline">Pendientes ({sesiones.filter(s => {
               const totalLiquidaciones = s.liquidaciones?.reduce((sum, l) => sum + Number(l.monto), 0) || 0;
               const restanteReal = Number(s.restante) - totalLiquidaciones;
               return s.entregado === 0 || restanteReal > 0;
-            }).length})
+            }).length})</span>
+            <span className="sm:hidden">Pendientes</span>
           </button>
           <button
             onClick={() => setFiltro('entregadas')}
-            className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-sm sm:text-base ${
+            className={`px-2 sm:px-4 py-2 rounded-lg font-medium transition-all text-xs sm:text-sm md:text-base ${
               filtro === 'entregadas'
                 ? 'bg-green-500 text-white'
                 : 'bg-white/5 text-slate-300 hover:bg-white/10'
             }`}
           >
-            Entregadas ({sesiones.filter(s => s.entregado === 1).length})
+            <span className="hidden sm:inline">Entregadas ({sesiones.filter(s => s.entregado === 1).length})</span>
+            <span className="sm:hidden">Entregadas</span>
           </button>
         </div>
       </motion.div>

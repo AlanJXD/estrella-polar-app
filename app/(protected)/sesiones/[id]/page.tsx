@@ -58,6 +58,39 @@ interface Sesion {
   };
 }
 
+// Función para formatear hora en formato 12 horas con AM/PM
+const formatearHora = (horaString: string) => {
+  try {
+    // Extraer la hora del formato ISO o string de tiempo
+    let horaStr = horaString;
+
+    // Si viene en formato ISO (con fecha completa), extraer solo HH:MM
+    if (horaString.includes('T')) {
+      horaStr = horaString.substring(11, 16);
+    } else if (horaString.length > 5) {
+      horaStr = horaString.substring(0, 5);
+    }
+
+    const horaMatch = horaStr.match(/(\d{1,2}):(\d{2})/);
+    if (!horaMatch) return horaString;
+
+    let horas = parseInt(horaMatch[1]);
+    const minutos = horaMatch[2];
+    const ampm = horas >= 12 ? 'PM' : 'AM';
+
+    // Convertir a formato 12 horas
+    if (horas === 0) {
+      horas = 12;
+    } else if (horas > 12) {
+      horas = horas - 12;
+    }
+
+    return `${horas}:${minutos} ${ampm}`;
+  } catch {
+    return horaString;
+  }
+};
+
 export default function SesionDetallePage() {
   const router = useRouter();
   const params = useParams();
@@ -530,7 +563,7 @@ export default function SesionDetallePage() {
                 <div className="flex justify-between py-2 border-b border-white/10">
                   <span className="text-slate-400">Horario</span>
                   <span className="text-white font-medium">
-                    {sesion.horaInicial.substring(0, 5)} - {sesion.horaFinal.substring(0, 5)}
+                    {formatearHora(sesion.horaInicial)} - {formatearHora(sesion.horaFinal)}
                   </span>
                 </div>
                 {sesion.especificaciones && (

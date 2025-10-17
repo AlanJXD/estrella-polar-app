@@ -71,7 +71,7 @@ export default function RootLayout({
   return (
     <html lang="es" className="dark">
       <head>
-        <link rel="apple-touch-icon" href="/icon-192x192.png" />
+       <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
         <meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)" />

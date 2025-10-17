@@ -26,17 +26,32 @@ interface SessionCardProps {
 
 const formatearHora = (hora: string): string => {
   try {
-    const date = new Date(hora);
-    return format(date, 'h:mm a');
-  } catch {
-    // Si falla, intentar extraer solo HH:mm si es un string
-    if (typeof hora === 'string' && hora.includes(':')) {
-      const [hours, minutes] = hora.substring(0, 5).split(':');
-      const h = parseInt(hours);
-      const period = h >= 12 ? 'PM' : 'AM';
-      const hour12 = h % 12 || 12;
-      return `${hour12}:${minutes} ${period}`;
+    // Extraer la hora del formato ISO o string de tiempo
+    let horaStr = hora;
+
+    // Si viene en formato ISO (con fecha completa), extraer solo HH:MM
+    if (hora.includes('T')) {
+      horaStr = hora.substring(11, 16);
+    } else if (hora.length > 5 && hora.includes(':')) {
+      horaStr = hora.substring(0, 5);
     }
+
+    const horaMatch = horaStr.match(/(\d{1,2}):(\d{2})/);
+    if (!horaMatch) return '12:00 AM';
+
+    let horas = parseInt(horaMatch[1]);
+    const minutos = horaMatch[2];
+    const ampm = horas >= 12 ? 'PM' : 'AM';
+
+    // Convertir a formato 12 horas
+    if (horas === 0) {
+      horas = 12;
+    } else if (horas > 12) {
+      horas = horas - 12;
+    }
+
+    return `${horas}:${minutos} ${ampm}`;
+  } catch {
     return '12:00 AM';
   }
 };
