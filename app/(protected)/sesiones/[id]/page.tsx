@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { sesionesApi } from '@/lib/api/sesiones';
+import { paquetesApi, Paquete } from '@/lib/api/paquetes';
 import { SessionDetailSkeleton } from '@/components/Shimmer';
 
 interface Sesion {
@@ -99,6 +100,7 @@ export default function SesionDetallePage() {
   const [sesion, setSesion] = useState<Sesion | null>(null);
   const [loading, setLoading] = useState(true);
   const [editando, setEditando] = useState(false);
+  const [paquetes, setPaquetes] = useState<Paquete[]>([]);
 
   // Estados de carga para botones
   const [guardando, setGuardando] = useState(false);
@@ -107,6 +109,8 @@ export default function SesionDetallePage() {
   const [actualizandoCaja, setActualizandoCaja] = useState(false);
   const [agregandoLiquidacion, setAgregandoLiquidacion] = useState(false);
   const [actualizandoDistribucion, setActualizandoDistribucion] = useState(false);
+  const [eliminando, setEliminando] = useState(false);
+  const [modalConfirmarEliminar, setModalConfirmarEliminar] = useState(false);
 
   // Estados para modales
   const [modalIngresoExtra, setModalIngresoExtra] = useState(false);
@@ -138,6 +142,7 @@ export default function SesionDetallePage() {
     fecha: '',
     horaInicial: '',
     horaFinal: '',
+    paqueteId: '',
     especificaciones: '',
     comentario: '',
     anticipo: '',
@@ -163,6 +168,7 @@ export default function SesionDetallePage() {
 
   useEffect(() => {
     cargarSesion();
+    cargarPaquetes();
   }, [sesionId]);
 
   const cargarSesion = async () => {
@@ -179,6 +185,7 @@ export default function SesionDetallePage() {
           fecha: s.fecha.split('T')[0],
           horaInicial: s.horaInicial.substring(11, 16),
           horaFinal: s.horaFinal.substring(11, 16),
+          paqueteId: String(s.paquete.id),
           especificaciones: s.especificaciones || '',
           comentario: s.comentario || '',
           anticipo: s.anticipo,
@@ -201,24 +208,57 @@ export default function SesionDetallePage() {
     }
   };
 
+  const cargarPaquetes = async () => {
+    try {
+      const response = await paquetesApi.listar();
+      if (response.success) {
+        setPaquetes(response.data);
+      }
+    } catch (error) {
+      console.error('Error al cargar paquetes:', error);
+    }
+  };
+
   const handleGuardarCambios = async () => {
     if (guardando) return;
     try {
       setGuardando(true);
       const response = await sesionesApi.actualizar(Number(sesionId), {
         ...formData,
+        paqueteId: formData.paqueteId ? Number(formData.paqueteId) : undefined,
         anticipo: formData.anticipo ? Number(formData.anticipo) : undefined,
         montoCaja: formData.montoCaja ? Number(formData.montoCaja) : undefined,
       });
       if (response.success) {
         setEditando(false);
         await cargarSesion();
+        showToast('Cambios guardados correctamente', 'success');
       }
     } catch (error) {
       console.error('Error al actualizar sesión:', error);
       showToast('Error al guardar cambios');
     } finally {
       setGuardando(false);
+    }
+  };
+
+  const handleEliminarSesion = async () => {
+    if (eliminando) return;
+    try {
+      setEliminando(true);
+      const response = await sesionesApi.eliminar(Number(sesionId));
+      if (response.success) {
+        showToast('Sesión eliminada correctamente', 'success');
+        setTimeout(() => {
+          router.push('/sesiones');
+        }, 1000);
+      }
+    } catch (error) {
+      console.error('Error al eliminar sesión:', error);
+      showToast('Error al eliminar sesión');
+      setModalConfirmarEliminar(false);
+    } finally {
+      setEliminando(false);
     }
   };
 
@@ -376,17 +416,30 @@ export default function SesionDetallePage() {
           </div>
           <div className="flex gap-2">
             {!editando ? (
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setEditando(true)}
-                className="p-2 bg-primary-500 hover:bg-primary-600 text-white rounded-xl shadow-lg shadow-primary-500/30 transition-colors"
-                title="Editar"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-              </motion.button>
+              <>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setEditando(true)}
+                  className="p-2 bg-primary-500 hover:bg-primary-600 text-white rounded-xl shadow-lg shadow-primary-500/30 transition-colors"
+                  title="Editar"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setModalConfirmarEliminar(true)}
+                  className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-xl shadow-lg shadow-red-500/30 transition-colors"
+                  title="Eliminar"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </motion.button>
+              </>
             ) : (
               <>
                 <motion.button
@@ -527,6 +580,27 @@ export default function SesionDetallePage() {
                     rows={3}
                     className="w-full px-4 py-2 rounded-lg glass border border-white/20 bg-white/5 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Paquete
+                  </label>
+                  <select
+                    value={formData.paqueteId}
+                    onChange={(e) => setFormData({ ...formData, paqueteId: e.target.value })}
+                    className="w-full px-4 py-2 rounded-lg glass border border-white/20 bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-primary-500 [&>option]:bg-slate-800 [&>option]:text-white"
+                  >
+                    {paquetes && paquetes.length > 0 ? (
+                      paquetes.map((paquete) => (
+                        <option key={paquete.id} value={paquete.id} className="bg-slate-800 text-white">
+                          {paquete.nombre} - ${Number(paquete.precio).toFixed(2)}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="" disabled className="bg-slate-800 text-slate-400">Cargando paquetes...</option>
+                    )}
+                  </select>
                 </div>
 
                 <div>
@@ -1184,6 +1258,106 @@ export default function SesionDetallePage() {
                     Cancelar
                   </button>
                 </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {/* Modal Confirmar Eliminar */}
+        {modalConfirmarEliminar && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => !eliminando && setModalConfirmarEliminar(false)}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="glass-strong rounded-2xl p-6 max-w-md w-full border-2 border-red-500/30"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-3 bg-red-500/20 rounded-xl">
+                  <svg className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <h2 className="text-2xl font-bold text-white">¿Eliminar Sesión?</h2>
+              </div>
+
+              <p className="text-slate-300 text-sm mb-4">
+                Esta acción no se puede deshacer. Se revertirán todos los movimientos de caja relacionados con esta sesión:
+              </p>
+
+              <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-6">
+                <ul className="text-sm text-slate-300 space-y-2">
+                  <li className="flex items-start gap-2">
+                    <svg className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Anticipo: ${Number(sesion.anticipo).toFixed(2)}</span>
+                  </li>
+                  {totalLiquidaciones > 0 && (
+                    <li className="flex items-start gap-2">
+                      <svg className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>Liquidaciones: ${totalLiquidaciones.toFixed(2)}</span>
+                    </li>
+                  )}
+                  {totalIngresos > 0 && (
+                    <li className="flex items-start gap-2">
+                      <svg className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>Ingresos extra: ${totalIngresos.toFixed(2)}</span>
+                    </li>
+                  )}
+                  {totalGastos > 0 && (
+                    <li className="flex items-start gap-2">
+                      <svg className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>Gastos: ${totalGastos.toFixed(2)}</span>
+                    </li>
+                  )}
+                  {Number(sesion.montoCaja) > 0 && (
+                    <li className="flex items-start gap-2">
+                      <svg className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>Monto en caja: ${Number(sesion.montoCaja).toFixed(2)}</span>
+                    </li>
+                  )}
+                </ul>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setModalConfirmarEliminar(false)}
+                  disabled={eliminando}
+                  className="flex-1 px-6 py-3 glass hover:bg-white/10 text-white rounded-xl font-medium transition-colors disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleEliminarSesion}
+                  disabled={eliminando}
+                  className={`flex-1 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2 ${
+                    eliminando ? 'opacity-70 cursor-not-allowed' : ''
+                  }`}
+                >
+                  {eliminando && (
+                    <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  )}
+                  {eliminando ? 'Eliminando...' : 'Sí, Eliminar'}
+                </button>
               </div>
             </motion.div>
           </motion.div>

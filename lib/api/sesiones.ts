@@ -16,6 +16,21 @@ export interface CrearSesionData {
   entregado?: number;
 }
 
+export interface ActualizarSesionData {
+  nombreCliente?: string;
+  celularCliente?: string;
+  fecha?: string;
+  horaInicial?: string;
+  horaFinal?: string;
+  paqueteId?: number;
+  especificaciones?: string;
+  anticipo?: number;
+  comentario?: string;
+  montoCaja?: number;
+  editado?: number;
+  entregado?: number;
+}
+
 export const sesionesApi = {
   listar: async (params?: { limit?: number; offset?: number }) => {
     const response = await apiClient.get('/sesiones', { params });
