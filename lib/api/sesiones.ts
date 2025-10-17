@@ -9,7 +9,7 @@ export interface CrearSesionData {
   paqueteId: number;
   especificaciones?: string;
   anticipo?: number;
-  restante?: number;
+  // restante se calcula automáticamente en el backend como: precio_paquete - anticipo
   comentario?: string;
   montoCaja?: number;
   editado?: number;
