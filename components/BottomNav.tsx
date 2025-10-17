@@ -67,10 +67,10 @@ export default function BottomNav() {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 pb-safe">
-      <div className="glass-strong border-t border-white/10">
+    <div className="fixed bottom-0 left-0 right-0 z-50">
+      <div className="bg-slate-900/95 backdrop-blur-3xl border-t border-white/10 shadow-2xl">
         <div className="max-w-screen-xl mx-auto">
-          <div className="grid grid-cols-5 gap-1 px-2 py-2">
+          <div className="grid grid-cols-5 gap-1 px-2 pt-2 pb-2 pb-safe">
             {navItems.map((item) => {
               const isActive = pathname === item.path;
 

@@ -155,6 +155,30 @@ export default function SesionesPage() {
     }
   };
 
+  // Función para formatear hora en formato 12 horas con AM/PM
+  const formatearHora = (horaString: string) => {
+    try {
+      // Si la hora viene en formato HH:MM o HH:MM:SS
+      const horaMatch = horaString.match(/(\d{1,2}):(\d{2})/);
+      if (!horaMatch) return horaString;
+
+      let horas = parseInt(horaMatch[1]);
+      const minutos = horaMatch[2];
+      const ampm = horas >= 12 ? 'PM' : 'AM';
+
+      // Convertir a formato 12 horas
+      if (horas === 0) {
+        horas = 12;
+      } else if (horas > 12) {
+        horas = horas - 12;
+      }
+
+      return `${horas}:${minutos} ${ampm}`;
+    } catch {
+      return horaString;
+    }
+  };
+
   const sesionesFiltradas = sesiones.filter((sesion) => {
     const totalLiquidaciones = sesion.liquidaciones?.reduce((sum, l) => sum + Number(l.monto), 0) || 0;
     const restanteReal = Number(sesion.restante) - totalLiquidaciones;
@@ -294,7 +318,7 @@ export default function SesionesPage() {
                 </svg>
                 <span>{format(new Date(sesion.fecha), "dd MMM yyyy", { locale: es })}</span>
                 <span className="text-slate-500">•</span>
-                <span>{sesion.horaInicial.substring(0, 5)} - {sesion.horaFinal.substring(0, 5)}</span>
+                <span>{formatearHora(sesion.horaInicial)} - {formatearHora(sesion.horaFinal)}</span>
               </div>
 
               {/* Información Financiera */}
