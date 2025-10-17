@@ -172,7 +172,11 @@ export default function SesionDetallePage() {
     if (guardando) return;
     try {
       setGuardando(true);
-      const response = await sesionesApi.actualizar(Number(sesionId), formData);
+      const response = await sesionesApi.actualizar(Number(sesionId), {
+        ...formData,
+        anticipo: formData.anticipo ? Number(formData.anticipo) : undefined,
+        montoCaja: formData.montoCaja ? Number(formData.montoCaja) : undefined,
+      });
       if (response.success) {
         setEditando(false);
         await cargarSesion();

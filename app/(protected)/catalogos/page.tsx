@@ -130,9 +130,9 @@ export default function CatalogosPage() {
           await cargarPaquetes();
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error al guardar paquete:', error);
-      showToast(error.response?.data?.message || 'Error al guardar paquete');
+      showToast((error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Error al guardar paquete');
     } finally {
       setGuardando(false);
     }
@@ -150,9 +150,9 @@ export default function CatalogosPage() {
         setModalEliminar(false);
         await cargarPaquetes();
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error al eliminar paquete:', error);
-      showToast(error.response?.data?.message || 'Error al eliminar paquete');
+      showToast((error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Error al eliminar paquete');
     } finally {
       setEliminando(false);
     }

@@ -12,6 +12,8 @@ export interface CrearSesionData {
   restante?: number;
   comentario?: string;
   montoCaja?: number;
+  editado?: number;
+  entregado?: number;
 }
 
 export const sesionesApi = {

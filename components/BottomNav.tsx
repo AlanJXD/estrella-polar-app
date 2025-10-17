@@ -1,12 +1,13 @@
 'use client';
 
+import React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 
 interface NavItem {
   name: string;
   path: string;
-  icon: JSX.Element;
+  icon: React.ReactElement;
 }
 
 export default function BottomNav() {

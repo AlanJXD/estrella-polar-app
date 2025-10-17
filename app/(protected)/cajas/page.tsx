@@ -102,9 +102,9 @@ export default function CajasPage() {
         await cargarCajas();
         showToast('Movimiento registrado correctamente', 'success');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error al crear movimiento:', error);
-      showToast(error.response?.data?.message || 'Error al registrar movimiento');
+      showToast((error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Error al registrar movimiento');
     } finally {
       setCreandoMovimiento(false);
     }

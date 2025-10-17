@@ -107,9 +107,9 @@ export default function NuevaSesionModal({ isOpen, onClose, onSuccess }: NuevaSe
           onSuccess();
         }, 500);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error al crear sesión:', error);
-      showToast(error.response?.data?.message || 'Error al crear sesión');
+      showToast((error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Error al crear sesión');
     } finally {
       setCreandoSesion(false);
     }

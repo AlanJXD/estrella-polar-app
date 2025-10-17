@@ -19,7 +19,7 @@ interface DistribucionData {
     cristian: number;
     cesar: number;
   };
-  sesiones?: any[];
+  sesiones?: Record<string, unknown>[];
 }
 
 export default function ReportesPage() {
